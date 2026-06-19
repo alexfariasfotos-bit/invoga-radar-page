@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="pt-BR"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Invoga — Pauta de Vídeo</title>
+<style>
+  :root { --quente:#d23b30; --fundo:#ececed; --card:#fff; --texto:#1c1c1f; --sub:#6b6b73; --linha:#d8d8dd; }
+  * { box-sizing:border-box; margin:0; }
+  body { background:var(--fundo); color:var(--texto); font:16px/1.5 -apple-system,system-ui,sans-serif; max-width:780px; margin:auto; padding:28px 20px; }
+  a.voltar { color:var(--sub); text-decoration:none; font-size:.9rem; }
+  h1 { font-size:1.5rem; margin:10px 0 4px; }
+  .sub { color:var(--sub); font-size:.9rem; margin-bottom:20px; }
+  .linha { display:flex; gap:8px; margin-bottom:8px; }
+  input { flex:1; padding:12px 14px; border:1px solid var(--linha); border-radius:10px; font:inherit; }
+  button { background:var(--quente); color:#fff; border:none; border-radius:10px; padding:12px 18px; font:inherit; font-weight:600; cursor:pointer; }
+  button.sec { background:#fff; color:var(--texto); border:1px solid var(--linha); padding:7px 12px; font-size:.85rem; }
+  .dica { color:var(--sub); font-size:.8rem; margin-bottom:18px; }
+  .bloco { background:var(--card); border:1px solid var(--linha); border-radius:12px; padding:18px; margin-top:16px; }
+  .bloco h2 { font-size:.8rem; text-transform:uppercase; letter-spacing:.08em; color:var(--sub); margin-bottom:10px; }
+  .pauta { white-space:pre-wrap; font-size:.95rem; }
+  .transc { white-space:pre-wrap; font-size:.9rem; color:#333; }
+  .acoes { display:flex; gap:8px; margin-top:10px; flex-wrap:wrap; }
+  .erro { color:var(--quente); }
+  .carregando { color:var(--sub); }
+  .hidden { display:none; }
+</style></head><body>
+  <a class="voltar" href="./">← voltar ao radar</a>
+  <h1>Gerar pauta de vídeo</h1>
+  <p class="sub">Cole o link do TikTok ou Instagram. Devolve a pauta montada e a transcrição.</p>
+
+  <div class="linha">
+    <input id="url" type="text" placeholder="https://www.tiktok.com/...  ou  https://www.instagram.com/reel/...">
+    <button id="ir">Gerar</button>
+  </div>
+  <p class="dica">Demora ~30-60s (baixa o vídeo e lê fala + texto na tela).</p>
+
+  <p id="status" class="carregando hidden"></p>
+
+  <div id="r-pauta" class="bloco hidden">
+    <h2>Pauta</h2>
+    <div id="pauta" class="pauta"></div>
+    <div class="acoes"><button class="sec" onclick="copiar('pauta')">Copiar pauta</button></div>
+  </div>
+
+  <div id="r-transc" class="bloco hidden">
+    <h2>Transcrição</h2>
+    <div id="transc" class="transc"></div>
+    <div class="acoes">
+      <button class="sec" onclick="copiar('transc')">Copiar transcrição</button>
+      <button class="sec" onclick="baixarTranscricao()">Baixar transcrição (.txt)</button>
+    </div>
+  </div>
+
+<script>
+const API = "https://pauta-api.invoga.com.br/pauta";
+const $ = id => document.getElementById(id);
+
+async function gerar() {
+  const url = $('url').value.trim();
+  if (!url) return;
+  $('ir').disabled = true;
+  $('r-pauta').classList.add('hidden'); $('r-transc').classList.add('hidden');
+  const st = $('status'); st.classList.remove('hidden','erro'); st.classList.add('carregando');
+  st.textContent = 'Gerando… baixando o vídeo e lendo no Gemini (~30-60s).';
+  try {
+    const res = await fetch(API, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({url})});
+    const d = await res.json();
+    if (d.erro) { st.classList.add('erro'); st.textContent = 'Erro: ' + d.erro; }
+    else {
+      st.classList.add('hidden');
+      $('pauta').textContent = d.pauta || '(sem pauta)';
+      $('transc').textContent = d.transcricao || '(sem transcrição)';
+      $('r-pauta').classList.remove('hidden');
+      if (d.transcricao) $('r-transc').classList.remove('hidden');
+    }
+  } catch (e) {
+    st.classList.add('erro'); st.textContent = 'Falha de conexão com o servidor. Tente de novo.';
+  }
+  $('ir').disabled = false;
+}
+function copiar(id){ navigator.clipboard.writeText($(id).textContent); }
+function baixarTranscricao(){
+  const b = new Blob([$('transc').textContent], {type:'text/plain'});
+  const a = document.createElement('a'); a.href = URL.createObjectURL(b);
+  a.download = 'transcricao.txt'; a.click();
+}
+$('ir').addEventListener('click', gerar);
+$('url').addEventListener('keydown', e => { if (e.key === 'Enter') gerar(); });
+</script>
+</body></html>
