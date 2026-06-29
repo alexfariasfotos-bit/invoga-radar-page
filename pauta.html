@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="pt-BR"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Invoga — Pauta de Vídeo</title>
+<title>Invoga — Pauta de Vídeo ou Carrossel</title>
 <style>
   :root { --quente:#d23b30; --fundo:#ececed; --card:#fff; --texto:#1c1c1f; --sub:#6b6b73; --linha:#d8d8dd; }
   * { box-sizing:border-box; margin:0; }
@@ -24,25 +24,25 @@
   .hidden { display:none; }
 </style></head><body>
   <a class="voltar" href="./">← voltar ao radar</a>
-  <h1>Gerar pauta de vídeo</h1>
-  <p class="sub">Cole o link do TikTok ou Instagram. Devolve a pauta montada e a transcrição.</p>
+  <h1>Gerar pauta de vídeo ou carrossel</h1>
+  <p class="sub">Cole o link do TikTok ou Instagram (vídeo, reel ou carrossel). Detecta o tipo sozinho e devolve a pauta montada e a leitura do conteúdo.</p>
 
   <div class="linha">
-    <input id="url" type="text" placeholder="https://www.tiktok.com/...  ou  https://www.instagram.com/reel/...">
+    <input id="url" type="text" placeholder="https://www.tiktok.com/...  ou  https://www.instagram.com/p/...">
     <button id="ir">Gerar</button>
   </div>
-  <p class="dica">Demora ~30-60s (baixa o vídeo e lê fala + texto na tela).</p>
+  <p class="dica">Demora ~30-60s (baixa o vídeo/carrossel e lê fala + texto na tela/slides).</p>
 
   <p id="status" class="carregando hidden"></p>
 
   <div id="r-pauta" class="bloco hidden">
-    <h2>Pauta</h2>
+    <h2>Pauta <span id="tipo-tag"></span></h2>
     <div id="pauta" class="pauta"></div>
     <div class="acoes"><button class="sec" onclick="copiar('pauta')">Copiar pauta</button></div>
   </div>
 
   <div id="r-transc" class="bloco hidden">
-    <h2>Transcrição</h2>
+    <h2>Leitura do conteúdo</h2>
     <div id="transc" class="transc"></div>
     <div class="acoes">
       <button class="sec" onclick="copiar('transc')">Copiar transcrição</button>
@@ -60,13 +60,14 @@ async function gerar() {
   $('ir').disabled = true;
   $('r-pauta').classList.add('hidden'); $('r-transc').classList.add('hidden');
   const st = $('status'); st.classList.remove('hidden','erro'); st.classList.add('carregando');
-  st.textContent = 'Gerando… baixando o vídeo e lendo no Gemini (~30-60s).';
+  st.textContent = 'Gerando… baixando o conteúdo e lendo no Gemini (~30-60s).';
   try {
     const res = await fetch(API, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({url})});
     const d = await res.json();
     if (d.erro) { st.classList.add('erro'); st.textContent = 'Erro: ' + d.erro; }
     else {
       st.classList.add('hidden');
+      $('tipo-tag').textContent = d.tipo ? '· ' + (d.tipo === 'carrossel' ? 'carrossel' : 'vídeo') : '';
       $('pauta').textContent = d.pauta || '(sem pauta)';
       $('transc').textContent = d.transcricao || '(sem transcrição)';
       $('r-pauta').classList.remove('hidden');
