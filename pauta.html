@@ -1,90 +1,186 @@
 <!doctype html>
-<html lang="pt-BR"><head><meta charset="utf-8">
+<html lang="pt-BR"><head>
+<meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Invoga — Pauta de Vídeo ou Carrossel</title>
+<title>Invoga — Pauta</title>
 <style>
-  :root { --quente:#d23b30; --fundo:#ececed; --card:#fff; --texto:#1c1c1f; --sub:#6b6b73; --linha:#d8d8dd; }
-  * { box-sizing:border-box; margin:0; }
-  body { background:var(--fundo); color:var(--texto); font:16px/1.5 -apple-system,system-ui,sans-serif; max-width:780px; margin:auto; padding:28px 20px; }
-  a.voltar { color:var(--sub); text-decoration:none; font-size:.9rem; }
-  h1 { font-size:1.5rem; margin:10px 0 4px; }
-  .sub { color:var(--sub); font-size:.9rem; margin-bottom:20px; }
-  .linha { display:flex; gap:8px; margin-bottom:8px; }
-  input { flex:1; padding:12px 14px; border:1px solid var(--linha); border-radius:10px; font:inherit; }
-  button { background:var(--quente); color:#fff; border:none; border-radius:10px; padding:12px 18px; font:inherit; font-weight:600; cursor:pointer; }
-  button.sec { background:#fff; color:var(--texto); border:1px solid var(--linha); padding:7px 12px; font-size:.85rem; }
-  .dica { color:var(--sub); font-size:.8rem; margin-bottom:18px; }
-  .bloco { background:var(--card); border:1px solid var(--linha); border-radius:12px; padding:18px; margin-top:16px; }
-  .bloco h2 { font-size:.8rem; text-transform:uppercase; letter-spacing:.08em; color:var(--sub); margin-bottom:10px; }
-  .pauta { white-space:pre-wrap; font-size:.95rem; }
-  .transc { white-space:pre-wrap; font-size:.9rem; color:#333; }
-  .acoes { display:flex; gap:8px; margin-top:10px; flex-wrap:wrap; }
-  .erro { color:var(--quente); }
-  .carregando { color:var(--sub); }
-  .hidden { display:none; }
+  :root{
+    --bg:#ffffff; --ink:#0f0f10; --muted:#6b6b70; --line:#ececec; --soft:#f6f6f6;
+  }
+  *{ box-sizing:border-box; margin:0; }
+  html{ -webkit-text-size-adjust:100%; }
+  body{
+    background:var(--bg); color:var(--ink);
+    font:16px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif;
+    max-width:680px; margin:0 auto; padding:24px 20px 80px;
+  }
+  .nav{ margin-bottom:48px; }
+  .back{ color:var(--muted); text-decoration:none; font-size:.85rem; letter-spacing:.02em; }
+  .back:hover{ color:var(--ink); }
+  h1{ font-size:2rem; font-weight:680; letter-spacing:-.02em; margin-bottom:6px; }
+  .sub{ color:var(--muted); font-size:.95rem; margin-bottom:28px; }
+
+  .bar{ display:flex; align-items:center; gap:6px; background:var(--soft);
+    border:1px solid var(--line); border-radius:999px; padding:6px 6px 6px 18px;
+    transition:border-color .15s; }
+  .bar:focus-within{ border-color:var(--ink); }
+  #url{ flex:1; min-width:0; border:none; background:transparent; font:inherit;
+    color:var(--ink); padding:10px 0; outline:none; }
+  #url::placeholder{ color:var(--muted); }
+  button{ font:inherit; cursor:pointer; }
+  #ir{ background:var(--ink); color:#fff; border:none; border-radius:999px;
+    padding:11px 22px; font-weight:600; font-size:.95rem; transition:opacity .15s; }
+  #ir:disabled{ opacity:.35; cursor:default; }
+
+  .hidden{ display:none !important; }
+
+  .progress{ margin-top:40px; }
+  .ploading{ font-size:.9rem; color:var(--muted); margin-bottom:12px; letter-spacing:.02em; }
+  .track{ height:6px; background:var(--line); border-radius:999px; overflow:hidden; }
+  .fill{ height:100%; width:0%; background:var(--ink); border-radius:999px;
+    transition:width .25s ease; }
+  .pct{ display:inline-block; margin-top:10px; font-size:.8rem; color:var(--muted);
+    font-variant-numeric:tabular-nums; }
+
+  .erro{ margin-top:32px; background:var(--soft); border:1px solid var(--line);
+    border-radius:14px; padding:16px 18px; font-size:.9rem; }
+
+  .card{ margin-top:40px; background:var(--bg); border:1px solid var(--line);
+    border-radius:18px; padding:24px;
+    box-shadow:0 1px 2px rgba(0,0,0,.04), 0 8px 24px rgba(0,0,0,.05); }
+  .card-head{ display:flex; align-items:center; justify-content:space-between; margin-bottom:16px; }
+  .card-title{ font-size:.72rem; text-transform:uppercase; letter-spacing:.14em; color:var(--muted); }
+  .tag{ font-size:.68rem; text-transform:uppercase; letter-spacing:.1em; color:var(--ink);
+    border:1px solid var(--line); border-radius:999px; padding:3px 11px; }
+  .pauta{ white-space:pre-wrap; font-size:1rem; line-height:1.75; }
+  .acoes{ display:flex; gap:8px; margin-top:18px; flex-wrap:wrap; }
+  .ghost{ background:transparent; border:1px solid var(--line); border-radius:999px;
+    padding:8px 16px; font-size:.85rem; color:var(--ink); transition:border-color .15s; }
+  .ghost:hover{ border-color:var(--ink); }
+
+  .leitura{ margin-top:16px; border:1px solid var(--line); border-radius:18px; padding:0 24px; }
+  .leitura summary{ list-style:none; cursor:pointer; padding:18px 0; font-size:.85rem;
+    color:var(--muted); display:flex; align-items:center; gap:9px; }
+  .leitura summary::-webkit-details-marker{ display:none; }
+  .leitura summary::before{ content:"\25B8"; display:inline-block; transition:transform .2s; }
+  .leitura[open] summary::before{ transform:rotate(90deg); }
+  .leitura summary:hover{ color:var(--ink); }
+  .transc{ white-space:pre-wrap; font-size:.9rem; color:#3a3a3c; line-height:1.6; padding-bottom:8px; }
+  .leitura .acoes{ padding-bottom:22px; }
 </style></head><body>
-  <a class="voltar" href="./">← voltar ao radar</a>
-  <h1>Gerar pauta de vídeo ou carrossel</h1>
-  <p class="sub">Cole o link do TikTok ou Instagram (vídeo, reel ou carrossel). Detecta o tipo sozinho e devolve a pauta montada e a leitura do conteúdo.</p>
+  <header class="nav"><a class="back" href="./">← radar</a></header>
+  <main>
+    <h1>Gerar pauta</h1>
+    <p class="sub">Vídeo ou carrossel do TikTok ou Instagram.</p>
 
-  <div class="linha">
-    <input id="url" type="text" placeholder="https://www.tiktok.com/...  ou  https://www.instagram.com/p/...">
-    <button id="ir">Gerar</button>
-  </div>
-  <p class="dica">Demora ~30-60s (baixa o vídeo/carrossel e lê fala + texto na tela/slides).</p>
+    <form class="bar" id="bar">
+      <input id="url" type="text" inputmode="url" autocomplete="off" autocapitalize="off"
+             spellcheck="false" placeholder="Cole o link aqui">
+      <button id="ir" type="submit">Gerar</button>
+    </form>
 
-  <p id="status" class="carregando hidden"></p>
+    <section class="progress hidden" id="progresso">
+      <p class="ploading">Gerando pauta</p>
+      <div class="track"><div class="fill" id="fill"></div></div>
+      <span class="pct" id="pct">0%</span>
+    </section>
 
-  <div id="r-pauta" class="bloco hidden">
-    <h2>Pauta <span id="tipo-tag"></span></h2>
-    <div id="pauta" class="pauta"></div>
-    <div class="acoes"><button class="sec" onclick="copiar('pauta')">Copiar pauta</button></div>
-  </div>
+    <p class="erro hidden" id="erro"></p>
 
-  <div id="r-transc" class="bloco hidden">
-    <h2>Leitura do conteúdo</h2>
-    <div id="transc" class="transc"></div>
-    <div class="acoes">
-      <button class="sec" onclick="copiar('transc')">Copiar transcrição</button>
-      <button class="sec" onclick="baixarTranscricao()">Baixar transcrição (.txt)</button>
-    </div>
-  </div>
+    <section class="card hidden" id="r-pauta">
+      <div class="card-head">
+        <span class="card-title">Pauta</span>
+        <span class="tag hidden" id="tipo-tag"></span>
+      </div>
+      <div class="pauta" id="pauta"></div>
+      <div class="acoes"><button class="ghost" id="copy-pauta">Copiar</button></div>
+    </section>
+
+    <details class="leitura hidden" id="r-transc">
+      <summary>Ver leitura do conteúdo</summary>
+      <div class="transc" id="transc"></div>
+      <div class="acoes">
+        <button class="ghost" id="copy-transc">Copiar</button>
+        <button class="ghost" id="dl-transc">Baixar .txt</button>
+      </div>
+    </details>
+  </main>
 
 <script>
 const API = "https://pauta-api.invoga.com.br/pauta";
 const $ = id => document.getElementById(id);
+let timer = null;
 
-async function gerar() {
+function setPct(v){ $('fill').style.width = v + '%'; $('pct').textContent = Math.round(v) + '%'; }
+
+function startProgress(){
+  let cur = 0; setPct(0);
+  $('progresso').classList.remove('hidden');
+  timer = setInterval(() => {
+    cur += Math.max(0.25, (92 - cur) * 0.02);   // sobe e desacelera perto de 92%
+    if (cur > 92) cur = 92;
+    setPct(cur);
+  }, 160);
+}
+function stopProgress(ok){
+  clearInterval(timer); timer = null;
+  if (ok){ setPct(100); setTimeout(() => $('progresso').classList.add('hidden'), 350); }
+  else { $('progresso').classList.add('hidden'); }
+}
+
+async function gerar(e){
+  if (e) e.preventDefault();
   const url = $('url').value.trim();
   if (!url) return;
   $('ir').disabled = true;
-  $('r-pauta').classList.add('hidden'); $('r-transc').classList.add('hidden');
-  const st = $('status'); st.classList.remove('hidden','erro'); st.classList.add('carregando');
-  st.textContent = 'Gerando… baixando o conteúdo e lendo no Gemini (~30-60s).';
+  $('r-pauta').classList.add('hidden');
+  $('r-transc').classList.add('hidden');
+  $('r-transc').removeAttribute('open');
+  $('erro').classList.add('hidden');
+  startProgress();
   try {
     const res = await fetch(API, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({url})});
     const d = await res.json();
-    if (d.erro) { st.classList.add('erro'); st.textContent = 'Erro: ' + d.erro; }
-    else {
-      st.classList.add('hidden');
-      $('tipo-tag').textContent = d.tipo ? '· ' + (d.tipo === 'carrossel' ? 'carrossel' : 'vídeo') : '';
-      $('pauta').textContent = d.pauta || '(sem pauta)';
-      $('transc').textContent = d.transcricao || '(sem transcrição)';
-      $('r-pauta').classList.remove('hidden');
-      if (d.transcricao) $('r-transc').classList.remove('hidden');
+    if (d.erro){
+      stopProgress(false);
+      $('erro').textContent = d.erro;
+      $('erro').classList.remove('hidden');
+    } else {
+      stopProgress(true);
+      setTimeout(() => {
+        const tipo = d.tipo ? (d.tipo === 'carrossel' ? 'carrossel' : 'vídeo') : '';
+        $('tipo-tag').textContent = tipo;
+        $('tipo-tag').classList.toggle('hidden', !tipo);
+        $('pauta').textContent = d.pauta || '(sem pauta)';
+        $('r-pauta').classList.remove('hidden');
+        if (d.transcricao){
+          $('transc').textContent = d.transcricao;
+          $('r-transc').classList.remove('hidden');
+        }
+      }, 360);
     }
-  } catch (e) {
-    st.classList.add('erro'); st.textContent = 'Falha de conexão com o servidor. Tente de novo.';
+  } catch (err) {
+    stopProgress(false);
+    $('erro').textContent = 'Falha de conexão com o servidor. Tente de novo.';
+    $('erro').classList.remove('hidden');
   }
   $('ir').disabled = false;
 }
-function copiar(id){ navigator.clipboard.writeText($(id).textContent); }
+
+function copiar(id, btn){
+  navigator.clipboard.writeText($(id).textContent);
+  const t = btn.textContent; btn.textContent = 'Copiado';
+  setTimeout(() => { btn.textContent = t; }, 1400);
+}
 function baixarTranscricao(){
   const b = new Blob([$('transc').textContent], {type:'text/plain'});
   const a = document.createElement('a'); a.href = URL.createObjectURL(b);
-  a.download = 'transcricao.txt'; a.click();
+  a.download = 'leitura.txt'; a.click();
 }
-$('ir').addEventListener('click', gerar);
-$('url').addEventListener('keydown', e => { if (e.key === 'Enter') gerar(); });
+
+$('bar').addEventListener('submit', gerar);
+$('copy-pauta').addEventListener('click', e => copiar('pauta', e.target));
+$('copy-transc').addEventListener('click', e => copiar('transc', e.target));
+$('dl-transc').addEventListener('click', baixarTranscricao);
 </script>
 </body></html>
